@@ -82,7 +82,7 @@ def main():
 		container_ip = subprocess.run(command, shell=True, capture_output=True).stdout.decode('utf-8').strip()
 	
 		server = protocol + "://" + container_ip + ":" + port
-		subprocess.run(f"java -jar cats.jar --contract {apispec} --server {server}", shell=True)
+		subprocess.run(f"java -jar cats.jar --contract {apispec} --server {server} --output {outfolder}/cats_report", shell=True)
 
 if __name__ == "__main__":
     main()
