@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 output_file="/var/log/openport.txt"
 
