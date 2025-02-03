@@ -1,0 +1,16 @@
+- rule: New port opened in container
+  desc: Detect when a new port is opened inside a container
+  condition: >
+   container and
+    evt.type = "bind" and
+    fd.port != 0 and
+    container.id != "host"
+  output: "New port opened in container (container_id=%container.id container_name=%container.name container_port=%fd.sport)"
+  priority: WARNING
+  tags: [network, container, open_port]
+
+
+
+
+
+
