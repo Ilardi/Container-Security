@@ -1,1 +1,78 @@
+# Monitoring
 
+- [How does it work?](#how-does-it-work)
+- [Installation](#Installation)
+- [Example](#Example)
+
+# How does it work?
+This folder contains some files used to monitor activities on the host machine where containers are deployed. This is implemented through Falco, a security tool that can detect suspicious behaviour by analyzing system calls. There is an extensive set of default rules (https://github.com/falcosecurity/rules/blob/main/rules/falco_rules.yaml) and more can be added; for instance, a custom rule has been created for the detection of a newly open port inside a container. Defining new rules is as simple as writing them in falco_custom_rules.yaml .
+<br><br>
+Each time a rule is matched, a new line is written in the log file (falco_report.txt); if a new port is opened in a container, that custom event is also written in a different log file (openport.txt). If you execute the observer.py script, each time a new port is opened the program will automatically launch nmap with ssl-enum-ciphers in order to evaluate the connection and see if TLS is being used and which versions; this is useful to determine if the connection is unsecure (like older versions of TLS, weak ciphers or TLS missing altogether).   
+
+<br>
+IMMAGINE CHE DESCRIVE IL WORKFLOW
+<br>
+<img src=""  height="400"></img>
+
+# Installation
+<h2>Falco</h2>
+Since Falco is executed with minimal capabilities, before launching it for the first time it is necessary to give write permissions to the log files contained in the report folder:
+<pre><code>chmod 666 report/falco_report.txt report/openport.txt</code></pre>
+
+<br>
+Falco is the only mandatory tool for this monitoring process. It can be installed on the host or run as a container; the choice has been the latter because it's the easiest to set up. 
+<br><br>
+If the kernel is recent enough (>=5.8 but might also work with older versions) there is actually nothing to install as Falco uses an embedded eBPF Probe, so it can be run using the following command:
+<pre><code>docker run --rm -it \
+--cap-drop all \
+--cap-add sys_admin \
+--cap-add sys_resource \
+--cap-add sys_ptrace \
+-v  /var/run/docker.sock:/host/var/run/docker.sock \
+-v /proc:/host/proc:ro \
+-v /etc:/host/etc:ro \
+-v ./falco_custom_rules.yaml:/etc/falco/rules.d/falco_custom_rules.yaml \
+-v ./falco.yaml:/etc/falco/falco.yaml \
+-v ./report/falco_report.txt:/var/log/falco_report.txt \
+-v ./event_handler.sh:/etc/falco/event_handler.sh \
+-v ./report/openport.txt:/var/log/openport.txt \
+falcosecurity/falco:latest</code></pre>
+
+<h3>Older versions</h3>
+Older distributions or kernels might require a different setup; the documentation is found at https://falco.org/docs/setup/container . For instance, a Debian 10 distribution with 4.9.10 kernel has been tested and it works by first installing the Kernel Module: 
+<pre><code>docker run --rm -it \
+--privileged \
+-v /root/.falco:/root/.falco \
+-v /boot:/host/boot:ro \
+-v /lib/modules:/host/lib/modules \
+-v /usr:/host/usr:ro \
+-v /proc:/host/proc:ro \
+-v /etc:/host/etc:ro \
+falcosecurity/falco-driver-loader:latest-buster kmod
+</code></pre>
+After that you can run the container using:
+<pre><code>docker run --rm -it \
+-e HOST_ROOT=/ \
+--cap-add SYS_PTRACE --pid=host $(ls /dev/falco* | xargs -I {} echo --device {}) \
+-v /var/run/docker.sock:/var/run/docker.sock \
+-v /etc:/host/etc:ro \
+-v ./falco_custom_rules.yaml:/etc/falco/rules.d/falco_custom_rules.yaml \
+-v ./falco.yaml:/etc/falco/falco.yaml \
+-v ./report/falco_report.txt:/var/log/falco_report.txt \
+-v ./event_handler.sh:/etc/falco/event_handler.sh \
+-v ./report/openport.txt:/var/log/openport.txt \
+falcosecurity/falco:latest falco -o engine.kind=kmod
+</code></pre>
+
+<br>
+Following the installation guide you can find the appropriate setup for your machine. The important part is to run it as a container with the following volumes:
+<pre><code>-v ./falco_custom_rules.yaml:/etc/falco/rules.d/falco_custom_rules.yaml \
+-v ./falco.yaml:/etc/falco/falco.yaml \
+-v ./report/falco_report.txt:/var/log/falco_report.txt \
+-v ./event_handler.sh:/etc/falco/event_handler.sh \
+-v ./report/openport.txt:/var/log/openport.txt \</code></pre>
+
+<h2>Nmap (Optional)</h2>
+If you choose to run the observer.py script to test new connections, you will need both Python (>=3.0) and Nmap installed on your host. If nmap is not already available, it can be easily downloaded with package managers such as apt or rpm; check the documentation for more details https://nmap.org/download.html .
+
+# Example

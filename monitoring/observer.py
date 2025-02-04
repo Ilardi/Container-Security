@@ -13,6 +13,8 @@ def callback(new_line):
         
 	container_id = data.get("output_fields", {}).get("container.id")
 	container_name = data.get("output_fields", {}).get("container.name")
+	if not container_name:
+		container_name = "undefined"
 	container_port = data.get("output_fields", {}).get("fd.sport")
 	container_time = data.get("time")
 	
