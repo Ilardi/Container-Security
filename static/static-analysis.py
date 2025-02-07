@@ -239,26 +239,36 @@ def get_installed_files(image, os, lang):
 #!/bin/sh
 apk update > /dev/null
 apk info | while read -r package; do
-	apk info -L "$package" | grep -E '\.({lang_extensions})$'
+	apk info -L "$package" | grep -E '\.({lang_extensions})$' >> /tmpout.txt
 done
 """
 		with open("./tmp_alpine_entrypoint.sh", "w") as script_file:
 			script_file.write(alpine_sh_script)
+		
+		# Create empty out file (used for the files to exclude)
+		if Path("tmpout.txt").exists():
+			subprocess.run("rm tmpout.txt", shell=True)
+		subprocess.run("touch tmpout.txt", shell=True)
 			
-		command = f"docker run --rm -v ./tmp_alpine_entrypoint.sh:/tmp_alpine_entrypoint.sh --entrypoint sh {image} /tmp_alpine_entrypoint.sh"
+		command = f"docker run --rm -v ./tmpout.txt:/tmpout.txt -v ./tmp_alpine_entrypoint.sh:/tmp_alpine_entrypoint.sh --entrypoint sh {image} /tmp_alpine_entrypoint.sh"
 
 
 	# Finally run the command
 	result = subprocess.run(command, shell=True, capture_output=True, text=True)
 
+	# Read the results
+	with open('tmpout.txt', 'r') as file:
+		files_to_exclude = file.read()
+		
 	# Cleanup tmp entrypoint (if Alpine)
 	if os == "alpine":
-		subprocess.run("rm ./tmp_alpine_entrypoint.sh", shell=True)	
+		subprocess.run("rm ./tmp_alpine_entrypoint.sh ./tmpout.txt", shell=True)	
 
 	# The returncode will be different from 0 in case of errors or even if no files are found.
 	# Either way, this means that no installed files will be skipped
-	if result.returncode == 0:
-		return [0, result.stdout.splitlines()]
+	# (If for some reason the above command doesn't work, files_to_exclude will be empty so we return 1)
+	if files_to_exclude != "":
+		return [0, files_to_exclude.splitlines()]
 	else:
 		return [1, ""]
 
@@ -321,7 +331,7 @@ def lang_analysis(image, detected_os, include_pkg, lang, given_workdir, spotbugs
 				print("\033[1;38;5;214mWarning: the script was not able to exclude system files from the analysis\033[0m")
 			else:
 				# Prefix the absolute path to image-tmp to each file to exclude
-				installed_files = [str(Path("image-tmp").resolve()) + path for path in installed_files]
+				installed_files = [str(Path("image-tmp").resolve()) + "/" + path for path in installed_files]
 				
 				# Delete the files
 				starting_path = Path("./image-tmp").resolve()
@@ -341,7 +351,7 @@ def lang_analysis(image, detected_os, include_pkg, lang, given_workdir, spotbugs
 		if excluded_paths:
 			starting_path = Path("./image-tmp").resolve()
 			for path in excluded_paths:
-				complete_path = "image-tmp" + path
+				complete_path = "image-tmp" + "/" + path
 				abs_path = Path(complete_path).resolve()
 				if str(abs_path).startswith(str(starting_path)) and abs_path != starting_path:
 					subprocess.run(f"rm -rf {abs_path}", capture_output=True, shell=True)
@@ -369,7 +379,7 @@ def lang_analysis(image, detected_os, include_pkg, lang, given_workdir, spotbugs
 		if excluded_paths:
 			if_user_excluded = "--ignore-paths"
 			for path in excluded_paths:
-				complete_path = "image-tmp" + path
+				complete_path = "image-tmp" + "/" + path
 				complete_abs_path = Path(complete_path).resolve()
 				user_excluded += str(complete_abs_path) + ","
 		user_excluded = user_excluded.rstrip(",")	
