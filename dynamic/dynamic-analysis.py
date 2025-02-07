@@ -33,6 +33,7 @@ def main():
 	"This path can also be set with the $CATS_PATH variable. It is only required when cats.jar is not in the same folder as this script")
 	parser.add_argument('--apispec', type=str, metavar="string", help="CATS: Path to the OpenAPI specification (Eg. /path/to/API.yaml)")
 	parser.add_argument('--port', type=str, metavar="string", help="CATS: Port number to test on the container")
+	parser.add_argument('--prefix', type=str, metavar="string", help="CATS: A path prefix that will be added in front of any path in the specification")
 	parser.add_argument('--https', action='store_true', help="CATS: Use this option if the REST API supports https")
 
 	# Parse the arguments
@@ -80,6 +81,10 @@ def main():
 		
 		port = args.port
 
+		prefix = ""
+		if args.prefix:
+			prefix = args.prefix.lstrip("/")
+
 		if args.https:
 			protocol = "https"
 		else:
@@ -88,8 +93,8 @@ def main():
 		# Get container IP
 		command = "docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' " + name
 		container_ip = subprocess.run(command, shell=True, capture_output=True).stdout.decode('utf-8').strip()
-	
-		server = protocol + "://" + container_ip + ":" + port
+		
+		server = protocol + "://" + container_ip + ":" + port + "/" + prefix
 		subprocess.run(f"java -jar {cats_path}/cats.jar --contract {apispec} --server {server} --output {outfolder}/cats_report", shell=True)
 
 if __name__ == "__main__":
