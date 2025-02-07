@@ -265,10 +265,12 @@ done
 	if os == "alpine":
 		subprocess.run("rm ./tmp_alpine_entrypoint.sh", shell=True)	
 	
-	print(files_to_exclude.splitlines())
 	# The returncode will be different from 0 in case of errors or even if no files are found.
 	# Either way, this means that no installed files will be skipped
-	# (If for some reason the above command doesn't work, files_to_exclude will be empty so we return 1)
+	# (If for some reason the above commands don't work, files_to_exclude will be empty so we return 1)
+	# I have tried using result.returncode but sometimes it has a strange behaviour, like it correctly
+	# identifies the files to exclude but the returncode is not 0 because something else happens
+	# after the entrypoint, so to avoid this situation I decided to just use an output file to write all the paths
 	if files_to_exclude != "":
 		return [0, files_to_exclude.splitlines()]
 	else:
