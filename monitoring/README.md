@@ -7,12 +7,11 @@
 # How does it work?
 This folder contains some files used to monitor activities on the host machine where containers are deployed. This is implemented through Falco, a security tool that can detect suspicious behaviour by analyzing system calls. There is an extensive set of default rules (https://github.com/falcosecurity/rules/blob/main/rules/falco_rules.yaml) and more can be added; for instance, a custom rule has been created for the detection of a newly open port inside a container. Defining new rules is as simple as writing them in falco_custom_rules.yaml .
 <br><br>
-Each time a rule is matched, a new line is written in the log file (falco_report.txt); if a new port is opened in a container, that custom event is also written in a different log file (openport.txt). If you execute the observer.py script, each time a new port is opened the program will automatically launch nmap with ssl-enum-ciphers in order to evaluate the connection and see if TLS is being used and which versions; this is useful to determine if the connection is unsecure (like older versions of TLS, weak ciphers or TLS missing altogether).   
+Each time a rule is matched, a new line is written in the main log file (falco_report.txt); if a new port is opened in a container, that custom event is also written in a different log file (openport.txt). If you execute the observer.py script it will start watching the openport.txt file, so that each time a new port is opened the program will automatically launch nmap with ssl-enum-ciphers in order to evaluate the connection and see if TLS is being used and which versions; this is useful to determine if the connection is unsecure (like older versions of TLS, weak ciphers or TLS missing altogether).   
 
-<br>
-IMMAGINE CHE DESCRIVE IL WORKFLOW
-<br>
-<img src=""  height="400"></img>
+<p align="center">
+<img src="https://github.com/user-attachments/assets/1e0f9a65-fef5-4400-8ea2-00603c7a285f"  height="500"></img>
+</p>
 
 # Installation
 <h2>Falco</h2>
