@@ -223,14 +223,19 @@ def get_installed_files(image, os, lang):
 	elif lang == "java":
 		lang_extensions = "jar|ear|war|zip|class"
 		
+	# Create empty out file (used for the files to exclude)
+	if Path("tmpout.txt").exists():
+		subprocess.run("rm tmpout.txt", shell=True)
+	subprocess.run("touch tmpout.txt", shell=True)
+		
 	# Differentiate among OS
 	if os in ["debian", "ubuntu"]:
-		inside_command = rf"dpkg --get-selections | grep -w 'install' | cut -f1 | xargs dpkg -L | grep -E '\.({lang_extensions})$'"
-		command = f"docker run --rm --entrypoint bash {image} -c \"{inside_command}\""
+		inside_command = rf"dpkg --get-selections | grep -w 'install' | cut -f1 | xargs dpkg -L | grep -E '\.({lang_extensions})$' >> /tmpout.txt"
+		command = f"docker run --rm -v ./tmpout.txt:/tmpout.txt --entrypoint bash {image} -c \"{inside_command}\""
 	
 	elif os == "redhat":
-		inside_command = rf"rpm -qa --qf '%{{NAME}}\n' | xargs -I {{}} rpm -ql {{}} | grep -E '\.({lang_extensions})$'"
-		command = f"docker run --rm --entrypoint bash {image} -c \"{inside_command}\""
+		inside_command = rf"rpm -qa --qf '%{{NAME}}\n' | xargs -I {{}} rpm -ql {{}} | grep -E '\.({lang_extensions})$' >> /tmpout.txt"
+		command = f"docker run --rm -v ./tmpout.txt:/tmpout.txt --entrypoint bash {image} -c \"{inside_command}\""
 		
 	elif os == "alpine":	
 		# Write a temporary entrypoint to be mounted into the container
@@ -245,11 +250,6 @@ done
 		with open("./tmp_alpine_entrypoint.sh", "w") as script_file:
 			script_file.write(alpine_sh_script)
 		
-		# Create empty out file (used for the files to exclude)
-		if Path("tmpout.txt").exists():
-			subprocess.run("rm tmpout.txt", shell=True)
-		subprocess.run("touch tmpout.txt", shell=True)
-			
 		command = f"docker run --rm -v ./tmpout.txt:/tmpout.txt -v ./tmp_alpine_entrypoint.sh:/tmp_alpine_entrypoint.sh --entrypoint sh {image} /tmp_alpine_entrypoint.sh"
 
 
@@ -260,18 +260,19 @@ done
 	with open('tmpout.txt', 'r') as file:
 		files_to_exclude = file.read()
 		
-	# Cleanup tmp entrypoint (if Alpine)
+	# Cleanup tmp files
+	subprocess.run("rm ./tmpout.txt", shell=True)
 	if os == "alpine":
-		subprocess.run("rm ./tmp_alpine_entrypoint.sh ./tmpout.txt", shell=True)	
-
+		subprocess.run("rm ./tmp_alpine_entrypoint.sh", shell=True)	
+	
+	print(files_to_exclude.splitlines())
 	# The returncode will be different from 0 in case of errors or even if no files are found.
 	# Either way, this means that no installed files will be skipped
 	# (If for some reason the above command doesn't work, files_to_exclude will be empty so we return 1)
 	if files_to_exclude != "":
 		return [0, files_to_exclude.splitlines()]
 	else:
-		return [1, ""]
-
+		return [1, ""]	
 
 def lang_analysis(image, detected_os, include_pkg, lang, given_workdir, spotbugs_path, outfolder, excluded_paths):
 	print(f"\033[1;32mStarting Language-Specific Analysis: {lang}\033[0m")
