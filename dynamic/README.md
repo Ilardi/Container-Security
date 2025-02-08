@@ -7,7 +7,7 @@
 # How does it work?
 This folder contains a script that performs dynamic analysis on a running container. It leverages docker-bench-security in order to execute the tests from section 5 (Runtime) of the Docker CIS Benchmark and, if an OpenAPI specification is given, it will perform fuzzing on the API with the tool CATS.
 
-<img src="https://github.com/user-attachments/assets/8f0c8130-1a2c-426d-8e01-f4ae18e59e86"  height="400"></img>
+<img src="../misc/img/dynamic_workflow.png"  height="400"></img>
 
 While this analysis might seem somewhat limited, it is difficult to find a general approach since a more detailed study would require a tailored configuration for the application under test and penetration testing activities, but that is out of scope for this project.
 
@@ -24,14 +24,14 @@ After the container is running we can start the analysis. Download the OpenAPI s
 <pre><code>python dynamic-analysis.py --name swaggerapi-petstore3 --apispec &lt;path-to&gt;/openapi.json --port 8080 --prefix /api/v3 </code></pre>
 Remember to correctly set the CATS path either with the environment variable or command line argument. In this example we are using a prefix (/api/v3) because of way the specification is made.<br><br>
 The output will be something like this:
-![image](https://github.com/user-attachments/assets/2f3272f0-1e33-4b02-8cde-8069a32c6969)
+![image](../misc/img/dynamic1.png)
 
 <br>
 At the end there will be a summary of the errors and a link you can click to open the CATS report, which you can then navigate:
 
-![image](https://github.com/user-attachments/assets/e4c088af-a57f-4d96-ba0e-db22a63afcf4)
-![image](https://github.com/user-attachments/assets/158497c8-e9ae-4930-b6ac-46eba3a22f30)
-![image](https://github.com/user-attachments/assets/487dc56d-d894-45b2-be96-b3f85b7de165)
+![image](../misc/img/dynamic2.png)
+![image](../misc/img/dynamic3.png)
+![image](../misc/img/dynamic4.png)
 
 
 The output folder will also contain the docker-bench-security report. For a list of all the options use the <code>--help</code> option.
