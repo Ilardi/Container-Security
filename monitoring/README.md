@@ -94,4 +94,10 @@ In the openport.txt file you will only see the open_port event. If you installed
 
 Since the report is not showing any details other than the port being open we can conclude that the container is not using TLS.
 <br>
+Now let's use a TLS example. Run the following demo https server:
+<pre><code>docker run --name https-server -p 443:443 ilardi/python-https-server:latest</code></pre>
+If you now look at the nmap report it is going to be something like this:
 
+<img src="https://github.com/user-attachments/assets/23a4a7a1-4aa9-4911-85e1-deb6e5987071"  height="400"></img>
+
+You can see all the details regarding the TLS configuration, and each cipher has a security score. If there were any vulnerabilities with the current setup they would be reported in a "warnings" section.  
