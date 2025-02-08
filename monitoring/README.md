@@ -10,7 +10,7 @@ This folder contains some files used to monitor activities on the host machine w
 Each time a rule is matched, a new line is written in the main log file (falco_report.txt); if a new port is opened in a container, that custom event is also written in a different log file (openport.txt). If you execute the observer.py script it will start watching the openport.txt file, so that each time a new port is opened the program will automatically launch nmap with ssl-enum-ciphers in order to evaluate the connection and see if TLS is being used and which versions; this is useful to determine if the connection is unsecure (like older versions of TLS, weak ciphers or TLS missing altogether).   
 
 <p align="center">
-<img src="https://github.com/user-attachments/assets/1e0f9a65-fef5-4400-8ea2-00603c7a285f"  height="500"></img>
+<img src="../misc/img/monitoring_workflow.png"  height="500"></img>
 </p>
 
 # Installation
@@ -85,12 +85,12 @@ Then open a shell inside the container with:
 <br>
 Let's take a look at what happened. If you open falco_report.txt you are going to see 2 events: an open port when the container was launched, and the opening of a shell which is detected by the default rule set:
 
-![image](https://github.com/user-attachments/assets/634b80a4-208a-4093-90f0-cdf1f669bf69)
+![image](../misc/img/falco1.PNG)
 
 <br>
 In the openport.txt file you will only see the open_port event. If you installed Nmap and started the observer, then when this event happened the script automatically launched Nmap on the newly open port, so you can take a look at the Nmap report:
 
-![image](https://github.com/user-attachments/assets/b95aa061-1e92-4a21-9254-226cba5b2783)
+![image](../misc/img/falco2.PNG)
 
 Since the report is not showing any details other than the port being open we can conclude that the container is not using TLS.
 <br>
@@ -98,6 +98,6 @@ Now let's use a TLS example. Run the following demo https server:
 <pre><code>docker run --name https-server -p 443:443 ilardi/python-https-server:latest</code></pre>
 If you now look at the nmap report it is going to be something like this:
 
-<img src="https://github.com/user-attachments/assets/23a4a7a1-4aa9-4911-85e1-deb6e5987071"  height="400"></img>
+<img src="../misc/img/falco3.PNG"  height="400"></img>
 
 You can see all the details regarding the TLS configuration, and each cipher has a security score. If there were any vulnerabilities with the current setup they would be reported in a "warnings" section.  
