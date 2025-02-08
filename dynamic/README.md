@@ -7,7 +7,7 @@
 # How does it work?
 This folder contains a script that performs dynamic analysis on a running container. It leverages docker-bench-security in order to execute the tests from section 5 (Runtime) of the Docker CIS Benchmark and, if an OpenAPI specification is given, it will perform fuzzing on the API with the tool CATS.
 
-<img src="../misc/img/dynamic_workflow.png"  height="400"></img>
+<p align="center"><img src="../misc/img/dynamic_workflow.png"  height="400"></img></p>
 
 While this analysis might seem somewhat limited, it is difficult to find a general approach since a more detailed study would require a tailored configuration for the application under test and penetration testing activities, but that is out of scope for this project.
 
