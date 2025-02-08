@@ -75,3 +75,23 @@ Following the installation guide you can find the appropriate setup for your mac
 If you choose to run the observer.py script to test new connections, you will need both Python (>=3.0) and Nmap installed on your host. If nmap is not already available, it can be easily downloaded with package managers such as apt or rpm; check the documentation for more details https://nmap.org/download.html .
 
 # Example
+Follow the installation guide to start Falco, then run the observer with:
+<pre><code>python observer.py</code></pre>
+We can now test the system. Let's launch a container with:
+<pre><code>docker run --name swaggerapi-petstore3 -p 8080:8080 swaggerapi/petstore3:1.0.19</code></pre>
+Then open a shell inside the container with:
+<pre><code>docker exec -it swaggerapi-petstore3 sh</code></pre>
+
+<br>
+Let's take a look at what happened. If you open falco_report.txt you are going to see 2 events: an open port when the container was launched, and the opening of a shell which is detected by the default rule set:
+
+![image](https://github.com/user-attachments/assets/634b80a4-208a-4093-90f0-cdf1f669bf69)
+
+<br>
+In the openport.txt file you will only see the open_port event. If you installed Nmap and started the observer, then when this event happened the script automatically launched Nmap on the newly open port, so you can take a look at the Nmap report:
+
+![image](https://github.com/user-attachments/assets/b95aa061-1e92-4a21-9254-226cba5b2783)
+
+Since the report is not showing any details other than the port being open we can conclude that the container is not using TLS.
+<br>
+
