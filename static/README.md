@@ -16,7 +16,7 @@ The second analysis is done by Trivy, a tool capable of checking the Image OS an
 Lastly, code analysis. In order for this to work we need to extract the image filesystem, and this is done with Crane. After that, one or more tools are required according to the application language (currently Java and Python are supported). Python analysis requires source (.py) files, while Java analysis works with bytecode, so .classes files or archives containing .class files (jar, ear, war, zip).
 
 # Installation
-Besides the tools shown in this section, it is clear that Docker is required, as well as a Java/Python installation depending on the chosen workflow. There are no particular version requirements but it is recommended to download the latest updates.
+Besides the tools shown in this section, it is clear that Docker is required, as well as a Java/Python installation depending on the chosen workflow. It is recommended to download the latest updates.
 
 <h2>Docker-bench-security</h2>
 Simply run the following:
