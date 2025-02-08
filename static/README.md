@@ -6,7 +6,7 @@
 # How does it work?
 This folder contains a script that performs static analysis on a docker image in order to find vulnerabilities and misconfigurations. Each tool generates an output report, and at the end a general vulnerability report is created from the info acquired during the analysis. The workflow is described in the following image:
 
-<img src="../misc/img/static_workflow.png"  height="500"></img>
+<p align="center"><img src="../misc/img/static_workflow.png"  height="500"></img></p>
 
 The starting point is a docker image: this can be a local image or one available on Dockerhub.
 The first type of analysis is done by docker-bench-security, a tool that performs the checks described in the Docker CIS Benchmark. Specifically, in this section we are running tests from chapter 4 of the Benchmark: Container Images and Build File. 
